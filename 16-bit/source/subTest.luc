@@ -1,0 +1,192 @@
+module subTest (
+    input clk,  // clock
+    input rst,  // reset
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output v,
+    output n,
+    output z,
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+    edge_detector edge_detector(#RISE(1), #FALL(0));
+    .rst(rst) {
+      fsm state = {START, S1, S2, S3, S4, S5, SUCCESS, FAIL};
+      dff timer[28];
+      sixteen_bit_adder sub;
+    }
+  }
+  
+  // checking cases
+  const POS1A = 16b0111111111111111;
+  const POS1B = 16b0000000011111111;
+  const S1RESULT = 16b0111111100000000;
+  
+  const POS2A = 16b0111111111111111;
+  const POS2B = 16b0111111111111111;
+  const S2RESULT = 16b0000000000000000;
+  
+  const POS3A = 16b0000000000000001;
+  const POS3B = 16b0000000000000010;
+  const S3RESULT = 16b1111111111111111;
+  
+  const POS4A = 16b0000000000000001;
+  const NEG4B = 16b1111111111111111;
+  const S4RESULT = 16b0000000000000010;
+  
+  const NEG5A = 16b1111111111111111;
+  const NEG5B = 16b1111111111111101;
+  const S5RESULT =  16b0000000000000010; // why this is not 0000000000000001?
+  
+  
+  always {
+    // define default outputs
+    out = 0;
+    v = sub.v;
+    n = sub.n;
+    z = sub.z;
+    sub.a = 0;
+    sub.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    sub.alufn = 8b00000001;
+    // define true to be false
+    true = 0;
+    
+    edge_detector.in = button;
+    step = 0;
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==2 & edge_detector.out) {
+          timer.d = 0;
+          state.d = state.S1;
+        }
+      
+      state.S1:
+        sub.a = POS1A;
+        sub.b = POS1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS1A;
+        } else if (timer.q[27:26]==1) {
+          out = POS1B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = sub.sum;
+        } else if (timer.q[27:26]==3) {
+          if ((sub.sum==S1RESULT) ){//&(sub.v==0)&(sub.z==0)&(sub.n==0)
+            timer.d = 0;
+            state.d = state.S2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.S2:
+        sub.a = POS2A;
+        sub.b = POS2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS2A;
+        } else if (timer.q[27:26]==1) {
+          out = POS2B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = sub.sum;
+        } else if (timer.q[27:26]==3) {
+          if ((sub.sum==S2RESULT) ){//&(sub.v==0)&(sub.z==0)&(sub.n==1)
+            timer.d = 0;
+            state.d = state.S3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.S3:
+        sub.a = POS3A;
+        sub.b = POS3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS3A;
+        } else if (timer.q[27:26]==1) {
+          out = POS3B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = sub.sum;
+        } else if (timer.q[27:26]==3) {
+          if ((sub.sum==S3RESULT) ){//&(sub.v==0)&(sub.z==1)&(sub.n==0)
+            timer.d = 0;
+            state.d = state.S4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.S4:
+        sub.a = POS4A;
+        sub.b = NEG4B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS4A;
+        } else if (timer.q[27:26]==1) {
+          out = NEG4B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = sub.sum;
+        } else if (timer.q[27:26]==3) {
+          if ((sub.sum==S4RESULT) ){//&(sub.v==0)&(sub.z==1)&(sub.n==0)
+            timer.d = 0;
+            state.d = state.S5;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.S5:
+        sub.a = NEG5A;
+        sub.b = NEG5B;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = NEG5A;
+        } else if (timer.q[27:26]==1) {
+          out = NEG5B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = sub.sum;
+        } else if (timer.q[27:26]==3) {
+          if ((sub.sum==S5RESULT) ){//&(sub.v==0)&(sub.z==1)&(sub.n==0)
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+      
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+    }
+  }
+}

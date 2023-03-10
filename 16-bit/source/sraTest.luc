@@ -1,0 +1,171 @@
+module sraTest (
+    input clk,  // clock
+    input rst,  // reset
+    
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+      .rst(rst) {
+        fsm state = {START, A1, A2, A3, A4, SUCCESS, FAIL};
+      dff timer[28];
+      sixteenbitshifter shl;
+    }
+  }
+  
+  // checking cases
+  const A1A = 16b0111111100000000;
+  const A1B = 16b0000000000000100;
+  const A1 =  16b0000011111110000;
+  
+  const A2A = 16b1010100101101010;
+  const A2B = 16b0000000000000000;
+  const A2 = 16b1010100101101010;
+  
+  const A3A = 16b0111111111111111;
+  const A3B = 16b0000000000000010;
+  const A3 = 16b0001111111111111;
+  
+  const A4A = 16b1000000000000000;
+  const A4B = 16b0000000000000001;
+  const A4 =  16b1100000000000000;
+  
+  
+  // correct results
+  
+  
+  
+  
+  
+  always {
+    // define default outputs
+    out = 0;
+    shl.a = 0;
+    shl.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    shl.alufn = 8b00100011;
+    // define true to be false
+    true = 0;
+    step = 0;
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==10 & button) {
+          timer.d = 0;
+          state.d = state.A1;
+        }
+        
+      state.A1:
+        shl.a = A1A;
+        shl.b = A1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = A1A;
+        } else if (timer.q[27:26]==1) {
+          out = A1B;
+        } else if ( timer.q[27:26]==2) {
+            // show result
+          out = shl.out;
+        } else if (timer.q[27:26]==3) {
+          if (shl.out==A1){
+            timer.d = 0;
+            state.d = state.A2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+          
+        
+      state.A2:
+        shl.a = A2A;
+        shl.b = A2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = A2A;
+        } else if (timer.q[27:26]==1) {
+          out = A2B;
+        } else if ( (timer.q[27:26]==2) ){
+            // show result
+          out = shl.out;
+        } else if ( timer.q[27:26]==3) {
+          if ((shl.out==A2) ){
+            timer.d = 0;
+            state.d = state.A3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+        
+      state.A3:
+        shl.a = A3A;
+        shl.b = A3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = A3A;
+        } else if (timer.q[27:26]==1) {
+          out = A3B;
+        } else if ( (timer.q[27:26]==2)  ){
+            // show result
+          out = shl.out;
+        } else if (timer.q[27:26]==3) {
+          if (shl.out==A3) {
+            timer.d = 0;
+            state.d = state.A4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+        
+      state.A4:
+        shl.a = A4A;
+        shl.b = A4B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = A4A;
+        } else if (timer.q[27:26]==1) {
+          out = A4B;
+        } else if ( (timer.q[27:26]==2) ){
+            // show result
+          out = shl.out;
+        } else if (timer.q[27:26]==3) {
+          if (shl.out==A4){
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+          
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+        
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+        
+        
+    }
+  }
+}

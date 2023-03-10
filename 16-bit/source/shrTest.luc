@@ -1,0 +1,164 @@
+module shrTest (
+    input clk,  // clock
+    input rst,  // reset
+    
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+      .rst(rst) {
+        fsm state = {START, R1, R2, R3, R4, SUCCESS, FAIL};
+      dff timer[28];
+      sixteenbitshifter sft;
+    }
+  }
+  
+  // checking cases
+  const R1A = 16b0110100101101010;
+  const R1B = 16b0000000000000100;
+  const R1 = 16b0000011010010110;
+  
+  const R2A = 16b0110100101101010;
+  const R2B = 16b0000000000000001;
+  const R2 = 16b0011010010110101;
+  
+  const R3A = 16b0111111111111111;
+  const R3B = 16b0000000000000010;
+  const R3 =  16b0001111111111111;
+  
+  const R4A = 16b1000000000000000;
+  const R4B = 16b0000000000000000;
+  const R4 = 16b1000000000000000;
+  
+  always {
+    // define default outputs
+    out = 0;
+    sft.a = 0;
+    sft.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    sft.alufn = 8b00100001;
+    // define true to be false
+    true = 0;
+    step = 0;
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==9 & button) {
+          timer.d = 0;
+          state.d = state.R1;
+        }
+        
+      state.R1:
+        sft.a = R1A;
+        sft.b = R1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = R1A;
+        } else if (timer.q[27:26]==1) {
+          out = R1B;
+        } else if ( timer.q[27:26]==2) {
+            // show result
+          out = sft.out;
+        } else if (timer.q[27:26]==3) {
+          if (sft.out==R1){
+            timer.d = 0;
+            state.d = state.R2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+          
+        
+      state.R2:
+        sft.a = R2A;
+        sft.b = R2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = R2A;
+        } else if (timer.q[27:26]==1) {
+          out = R2B;
+        } else if ( (timer.q[27:26]==2) ){
+            // show result
+          out = sft.out;
+        } else if ( timer.q[27:26]==3) {
+          if ((sft.out==R2) ){
+            timer.d = 0;
+            state.d = state.R3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+        
+      state.R3:
+        sft.a = R3A;
+        sft.b = R3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = R3A;
+        } else if (timer.q[27:26]==1) {
+          out = R3B;
+        } else if ( (timer.q[27:26]==2)  ){
+            // show result
+          out = sft.out;
+        } else if (timer.q[27:26]==3) {
+          if (sft.out==R3) {
+            timer.d = 0;
+            state.d = state.R4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+        
+      state.R4:
+        sft.a = R4A;
+        sft.b = R4B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = R4A;
+        } else if (timer.q[27:26]==1) {
+          out = R4B;
+        } else if ( (timer.q[27:26]==2) ){
+            // show result
+          out = sft.out;
+        } else if (timer.q[27:26]==3) {
+          if (sft.out==R4){
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+          
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+        
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+        
+        
+    }
+  }
+}

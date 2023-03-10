@@ -1,0 +1,166 @@
+module mulTest (
+    input clk,  // clock
+    input rst,  // reset
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+  edge_detector edge_detector(#RISE(1), #FALL(0));
+    .rst(rst) {
+      fsm state = {START, M1, M2, M3, M4, SUCCESS, FAIL};
+      dff timer[28];
+      sixteenbitmul mul;
+    }
+  }
+  
+  // checking cases
+  const POS1A = 16b0000000000000010;
+  const POS1B = 16b0000000000000100;
+  const M1RESULT  = 16b0000000000001000;
+  
+  const POS2A = 16b0100000000000001;
+  const POS2B = 16b0000000000000011;
+  const M2RESULT =  16b1100000000000011;
+  
+  const POS3A = 16b0000000000000001;
+  const NEG3B = 16b1111111111111111;
+  const M3RESULT  = 16b1111111111111111;
+  
+  const NEG4A = 16b1111111111111111;
+  const NEG4B = 16b1111111111111000;
+  const M4RESULT  = 16b0000000000001000;
+  
+  
+  
+  always {
+    // define default outputs
+    out = 0;
+    mul.a = 0;
+    mul.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    mul.alufn = 8b00000010;
+    // define true to be false
+    true = 0;
+    
+    edge_detector.in = button;
+    step = 0;
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==3 & edge_detector.out) {
+          timer.d = 0;
+          state.d = state.M1;
+        }
+      
+      state.M1:
+        mul.a = POS1A;
+        mul.b = POS1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS1A;
+        } else if (timer.q[27:26]==1) {
+          out = POS1B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = mul.out;
+        } else if (timer.q[27:26]==3) {
+          if (mul.out==M1RESULT){
+            timer.d = 0;
+            state.d = state.M2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.M2:
+        mul.a = POS2A;
+        mul.b = POS2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS2A;
+        } else if (timer.q[27:26]==1) {
+          out = POS2B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = mul.out;
+        } else if (timer.q[27:26]==3) {
+          if (mul.out==M2RESULT){
+            timer.d = 0;
+            state.d = state.M3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.M3:
+        mul.a = POS3A;
+        mul.b = NEG3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = POS3A;
+        } else if (timer.q[27:26]==1) {
+          out = NEG3B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = mul.out;
+        } else if (timer.q[27:26]==3) {
+          if (mul.out==M3RESULT){
+            timer.d = 0;
+            state.d = state.M4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.M4:
+        mul.a = NEG4A;
+        mul.b = NEG4B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = NEG4A;
+        } else if (timer.q[27:26]==1) {
+          out = NEG4B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = mul.out;
+        } else if (timer.q[27:26]==3) {
+          if (mul.out==M4RESULT){
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+          
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+      
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+      
+    }
+  }
+}

@@ -1,0 +1,20 @@
+module sixteenbitbool(
+    input clk,  // clock
+    input rst,  // reset
+    input a[16],
+    input b[16],
+    input alufn[6],
+    output out[16]
+){
+    
+    always{
+        out = 0;
+
+        case(alufn[3-:4]){
+            b1000: out = a&b;
+            b1110: out = a|b;
+            b0110: out = a^b;
+            b1010: out = a;
+        }
+    }
+}

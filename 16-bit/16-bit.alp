@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="16-bit" board="Alchitry Au" language="Lucid" version="3">
+  <files>
+    <src>sixteenbitshifter.luc</src>
+    <component>counter.luc</component>
+    <src>sixteenbitalu.luc</src>
+    <src top="true">au_top.luc</src>
+    <src>sixteenbitmul.luc</src>
+    <src>tst.luc</src>
+    <src>mulTest.luc</src>
+    <src>andTest.luc</src>
+    <src>shrTest.luc</src>
+    <src>sraTest.luc</src>
+    <component>reset_conditioner.luc</component>
+    <src>subTest.luc</src>
+    <src>xorTest.luc</src>
+    <src>cmpleTest.luc</src>
+    <src>bolATest.luc</src>
+    <src>cmpeqTest.luc</src>
+    <src>orTest.luc</src>
+    <src>cmpltTest.luc</src>
+    <src>multi_seven_seg.luc</src>
+    <src>addTest.luc</src>
+    <component>decoder.luc</component>
+    <src>shlTest.luc</src>
+    <src>sixteen_bit_adder.luc</src>
+    <src>seven_seg.luc</src>
+    <src>sixteenbitbool.luc</src>
+    <src>sixteenbitcmp.luc</src>
+    <component>edge_detector.luc</component>
+    <constraint lib="true">alchitry.acf</constraint>
+    <constraint lib="true">io.acf</constraint>
+    <constraint lib="true">au.xdc</constraint>
+  </files>
+</project>

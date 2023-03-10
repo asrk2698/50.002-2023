@@ -1,0 +1,73 @@
+//main file that calls all other functions
+
+module sixteenbitalu(
+    input clk,  // clock
+    input rst,  // reset
+    input alufn[6],
+    input a[16],
+    input b[16],
+
+    output out[16],
+    output z,
+    output v,
+    output n
+){
+
+
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    .rst(rst) {
+    sixteen_bit_adder adder;
+    sixteenbitcmp compare;
+    sixteenbitbool boolean;
+    sixteenbitshifter shifter;
+    sixteenbitmul multiplier;
+  
+    }
+  }
+
+    always{
+        
+        adder.alufn = alufn;
+        adder.a = a;
+        adder.b = b;
+
+        z = adder.z;
+        v = adder.v;
+        n = adder.n;
+
+        compare.alufn = alufn;
+//        compare.z = adder.z;
+//        compare.v = adder.v;
+//        compare.n = adder.n;
+    
+        compare.a = a;
+        compare.b = b;
+
+        boolean.alufn = alufn;
+        boolean.a = a;
+        boolean.b = b;
+
+        shifter.alufn = alufn;
+        shifter.a = a;
+        shifter.b = b;
+        
+        multiplier.alufn = alufn;
+        multiplier.a = a;
+        multiplier.b = b;
+
+        case(alufn[5-:2]){
+            b00: if(alufn[1]==0){
+                out = adder.sum;
+            }
+            else{
+                out = multiplier.out;
+            }
+            
+            b01: out = boolean.out;
+            b10: out = shifter.out;
+            b11: out = compare.out;
+        }
+    }
+}

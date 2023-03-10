@@ -1,0 +1,208 @@
+module cmpeqTest (
+    input clk,  // clock
+    input rst,  // reset
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+    .rst(rst) {
+      fsm state = {START, QQ1, QQ2, KK1, KK2, QQ3, KK3, SUCCESS, FAIL};
+      dff timer[28];
+      sixteenbitcmp cmpeq;
+    }
+  }
+  
+  // checking cases
+  const QQ1A = 16b0110100101101010;
+  const QQ1B = 16b0110100101100000;
+  const QQ2A = 16b0110100101101010;
+  const QQ2B = 16b0110100101101010;
+  const KK1A = 16b1000101010011100;
+  const KK1B = 16b1000101010010000;
+  const KK2A = 16b1000101010011100;
+  const KK2B = 16b1000101010011100;
+  const QQ3A = 16b0111111111111111;
+  const QQ3B = 16b0111111111111111;
+  const KK3A = 16b1000000000000000;
+  const KK3B = 16b1000000000000000;
+  
+  
+  // correct results
+  const QQ1 = 1b0;
+  const QQ2 = 1b1;
+  const KK1 = 1b0;
+  const KK2 = 1b1;
+  const QQ3 = 1b1;
+  const KK3 = 1b1;
+  
+  
+  always {
+    // define default outputs
+    out = 0;
+    cmpeq.a = 0;
+    cmpeq.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    cmpeq.alufn = 8b00110011;
+    // define true to be false
+    true = 0;
+    step = 0;
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==11 & button) {
+          timer.d = 0;
+          state.d = state.QQ1;
+        }
+      
+      state.QQ1:
+        cmpeq.a = QQ1A;
+        cmpeq.b = QQ1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ1A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ1B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmpeq.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmpeq.out==QQ1){
+            timer.d = 0;
+            state.d = state.QQ2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.QQ2:
+        cmpeq.a = QQ2A;
+        cmpeq.b = QQ2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ2A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ2B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmpeq.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmpeq.out==QQ2){
+            timer.d = 0;
+            state.d = state.QQ3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.QQ3:
+        cmpeq.a = QQ3A;
+        cmpeq.b = QQ3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ3A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ3B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmpeq.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmpeq.out==QQ3){
+            timer.d = 0;
+            state.d = state.KK1;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK1:
+        cmpeq.a = KK1A;
+        cmpeq.b = KK1B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK1A;
+        } else if (timer.q[27:26]==1) {
+          out = KK1B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmpeq.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmpeq.out==KK1){
+            timer.d = 0;
+            state.d = state.KK2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK2:
+        cmpeq.a = KK2A;
+        cmpeq.b = KK2B;
+        step = 16;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK2A;
+        } else if (timer.q[27:26]==1) {
+          out = KK2B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmpeq.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmpeq.out==KK2){
+            timer.d = 0;
+            state.d = state.KK3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK3:
+        cmpeq.a = KK3A;
+        cmpeq.b = KK3B;
+        step = 32;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK3A;
+        } else if (timer.q[27:26]==1) {
+          out = KK3B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmpeq.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmpeq.out==KK3){
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+          
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+      
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+    }
+  }
+}

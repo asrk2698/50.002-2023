@@ -1,0 +1,26 @@
+module sixteenbitcmp (
+    input clk,  // clock
+    input rst,  // reset
+    input a[16],
+    input b[16],
+    //input z,
+    //input v,
+    //input n,
+    input alufn[6],
+    output out[16]
+){
+    sig temp[16];
+
+    always{
+        temp = 0;
+
+        case (alufn[2-:2]){
+            b01: temp = c{15b0, (a==b)};
+            b10: temp = c{15b0, (a<b)};
+            b11: temp = c{15b0, (a<=b)};
+        }
+
+        out = temp[15-:16];
+
+    }
+}

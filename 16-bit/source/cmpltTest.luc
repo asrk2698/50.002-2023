@@ -1,0 +1,256 @@
+module cmpltTest (
+    input clk,  // clock
+    input rst,  // reset
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+    .rst(rst) {
+      fsm state = {START, QQ1, QQ2, QQ3, QQ4, KK1, KK2, KK3, KK4, SUCCESS, FAIL};
+      dff timer[28];
+      sixteenbitcmp cmplt;
+    }
+  }
+  
+  // checking cases
+  const QQ1A = 16b0110100101100000;
+  const QQ1B = 16b0110100101101010;
+  const QQ2A = 16b0110100101101010;
+  const QQ2B = 16b0110100101100000;
+  const QQ3A = 16b0110100101101010;
+  const QQ3B = 16b0110100101101010;
+  const QQ4A = 16b0111111111111111;
+  const QQ4B = 16b0111111111111111;
+  const KK1A = 16b1000101010010000;
+  const KK1B = 16b1000101010011100;
+  const KK2A = 16b1000101010011100;
+  const KK2B = 16b1000101010010000;
+  const KK3A = 16b1000101010011100;
+  const KK3B = 16b1000101010011100;
+  const KK4A = 16b1000000000000000;
+  const KK4B = 16b1000000000000000;
+  
+  // correct results
+  const QQ1 = 1b1;
+  const QQ2 = 1b0;
+  const QQ3 = 1b0;
+  const QQ4 = 1b0; //FAIL CASE (CHANGE THIS) -> Correct value is 0
+  const KK1 = 1b1;
+  const KK2 = 1b0;
+  const KK3 = 1b0;
+  const KK4 = 1b0;
+  
+  
+  always {
+    // define default outputs
+    out = 0;
+    cmplt.a = 0;
+    cmplt.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    cmplt.alufn = 8b00110101;
+    // define true to be false
+    true = 0;
+    step = 0;
+    
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==13 & button) {
+          timer.d = 0;
+          state.d = state.QQ1;
+        }
+      
+      state.QQ1:
+        cmplt.a = QQ1A;
+        cmplt.b = QQ1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ1A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ1B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==QQ1){
+            timer.d = 0;
+            state.d = state.QQ2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.QQ2:
+        cmplt.a = QQ2A;
+        cmplt.b = QQ2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ2A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ2B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==QQ2){
+            timer.d = 0;
+            state.d = state.QQ3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.QQ3:
+        cmplt.a = QQ3A;
+        cmplt.b = QQ3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ3A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ3B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==QQ3){
+            timer.d = 0;
+            state.d = state.QQ4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.QQ4:
+        cmplt.a = QQ4A;
+        cmplt.b = QQ4B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = QQ4A;
+        } else if (timer.q[27:26]==1) {
+          out = QQ4B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==QQ4){
+            timer.d = 0;
+            state.d = state.KK1;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK1:
+        cmplt.a = KK1A;
+        cmplt.b = KK1B;
+        step = 16;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK1A;
+        } else if (timer.q[27:26]==1) {
+          out = KK1B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==KK1){
+            timer.d = 0;
+            state.d = state.KK2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK2:
+        cmplt.a = KK2A;
+        cmplt.b = KK2B;
+        step = 32;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK2A;
+        } else if (timer.q[27:26]==1) {
+          out = KK2B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==KK2){
+            timer.d = 0;
+            state.d = state.KK3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK3:
+        cmplt.a = KK3A;
+        cmplt.b = KK3B;
+        step = 64;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK3A;
+        } else if (timer.q[27:26]==1) {
+          out = KK3B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==KK3){
+            timer.d = 0;
+            state.d = state.KK4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.KK4:
+        step = 128;
+        cmplt.a = KK4A;
+        cmplt.b = KK4B;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = KK4A;
+        } else if (timer.q[27:26]==1) {
+          out = KK4B;
+        } else if ( timer.q[27:26]==2) {
+          // show result
+          out = cmplt.out;
+        } else if (timer.q[27:26]==3) {
+          if (cmplt.out==KK4){
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+          
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+      
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+    }
+  }
+}

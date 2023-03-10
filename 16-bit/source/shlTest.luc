@@ -1,0 +1,164 @@
+module shlTest (
+    input clk,  // clock
+    input rst,  // reset
+    
+    // input
+    input button,
+    input count[4],
+    // out is to show input1 input2 input3
+    output out[16],
+    output true,
+    output step[8]
+  ) {
+  
+  .clk(clk) {
+      .rst(rst) {
+        fsm state = {START, L1, L2, L3, L4, SUCCESS, FAIL};
+      dff timer[28];
+      sixteenbitshifter shl;
+    }
+  }
+  
+  // checking cases
+  const L1A = 16b0110100101101010;
+  const L1B = 16b0000000000000100;
+  const L2A = 16b0110100101101010;
+  const L2B = 16b0000000000000000;
+  const L3A = 16b0111111111111111;
+  const L3B = 16b0000000000000001;
+  const L4A = 16b0000000000000001;
+  const L4B = 16b0000000000000010;
+  
+  // correct results
+  const L1 = 16b1001011010100000;
+  const L2 = 16b0110100101101010;
+  const L3 = 16b1111111111111110;
+  const L4 = 16b0000000000000100;
+  
+  always {
+    // define default outputs
+    out = 0;
+    shl.a = 0;
+    shl.b = 0;
+    timer.d = timer.q+1;
+    // alufn for add
+    shl.alufn = 8b00100000;
+    // define true to be false
+    true = 0;
+    step = 0;
+    
+    // cases
+    case(state.q) {
+      state.START:
+        if (count==8 & button) {
+          timer.d = 0;
+          state.d = state.L1;
+        }
+        
+      state.L1:
+        shl.a = L1A;
+        shl.b = L1B;
+        step = 1;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = L1A;
+        } else if (timer.q[27:26]==1) {
+          out = L1B;
+        } else if ( timer.q[27:26]==2) {
+            // show result
+          out = shl.out;
+        } else if (timer.q[27:26]==3) {
+          if (shl.out==L1){
+            timer.d = 0;
+            state.d = state.L2;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+          
+        
+      state.L2:
+        shl.a = L2A;
+        shl.b = L2B;
+        step = 2;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = L2A;
+        } else if (timer.q[27:26]==1) {
+          out = L2B;
+        } else if ( (timer.q[27:26]==2) ){
+            // show result
+          out = shl.out;
+        } else if ( timer.q[27:26]==3) {
+          if ((shl.out==L2) ){
+            timer.d = 0;
+            state.d = state.L3;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+        
+      state.L3:
+        shl.a = L3A;
+        shl.b = L3B;
+        step = 4;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = L3A;
+        } else if (timer.q[27:26]==1) {
+          out = L3B;
+        } else if ( (timer.q[27:26]==2)  ){
+            // show result
+          out = shl.out;
+        } else if (timer.q[27:26]==3) {
+          if (shl.out==L3) {
+            timer.d = 0;
+            state.d = state.L4;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+        
+      state.L4:
+        shl.a = L4A;
+        shl.b = L4B;
+        step = 8;
+        if (timer.q[27:26]==0) {
+          // show input1
+          out = L4A;
+        } else if (timer.q[27:26]==1) {
+          out = L4B;
+        } else if ( (timer.q[27:26]==2) ){
+            // show result
+          out = shl.out;
+        } else if (timer.q[27:26]==3) {
+          if (shl.out==L4){
+            timer.d = 0;
+            state.d = state.SUCCESS;
+          } else {
+            state.d = state.FAIL;
+          }
+        }
+      
+      state.SUCCESS:
+        if (timer.q[27] == 1) {
+          true = 1;
+          
+        } else if (timer.q[25] == 1) {
+          out = 16b1111111100000000;
+        } else if (timer.q[25]==0){
+          out = 16b0000000000000000;
+        }
+        
+      state.FAIL:
+        if (timer.q[25] == 1) {
+          out = 16b0000000011111111;
+        } else {
+          out = 16b0000000000000000;
+        }
+        
+        
+    }
+  }
+}

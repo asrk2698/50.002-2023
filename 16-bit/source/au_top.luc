@@ -1,0 +1,110 @@
+//main function that calls 16 bit alu
+
+module au_top (
+    input clk,              // 100MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    input usb_rx,           // USB->Serial input
+    output usb_tx,          // USB->Serial output
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8]     // DIP switches on IO Shield
+  ) {
+  
+  sig rst;                  // reset signal
+
+  
+.clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+    // detect rising edge_detector
+    edge_detector manual_a(#RISE(1), #FALL(0)); 
+    edge_detector manual_b(#RISE(1), #FALL(0));
+    edge_detector manual_result(#RISE(1), #FALL(0));
+    .rst(rst) {
+      sixteenbitalu alu;
+      dff input1[16];
+      dff input2[16];
+      dff result[16];
+      tst tst; // auto testing
+      multi_seven_seg seg;
+    }
+  }
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    usb_tx = usb_rx;        // loop serial port
+    
+    led = 8h00;             // turn LEDs off
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+    
+
+    manual_a.in = io_button[0];
+    manual_b.in = io_button[2];
+    manual_result.in = io_button[3];
+    
+    // define input for alu
+    alu.a = input1.q;
+    alu.b = input2.q;
+    alu.alufn = io_dip[2][5-:6];
+    
+    // show the result of the add to io_led, first initializing
+    io_led[0] = result.q[7-:8];
+    io_led[1] = result.q[15-:8];
+    // io_led show operation type
+    io_led[2] = io_dip[2];
+    // define input for auto testing
+    tst.button = io_button[1];
+    // define input for seg
+    seg.values = {4h0,4h0,4h0,4h0};
+    // define output for seg
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    
+    tst.error = 0;
+    
+   if (io_dip[2][7:6] == 3) {
+      // show the result
+      led = c{5b0, alu.z, alu.v, alu.n};
+      io_led[0] = result.q[7-:8];
+      io_led[1] = result.q[15-:8];
+      seg.values = {4h0,4h0,4h0,4h3};
+        if (manual_result.out) {
+          // Update io_led to show result
+          result.d = alu.out;
+        }
+    } else if (io_dip[2][7:6] == 1){
+      // show the result
+      io_led[0] = input1.q[7-:8];
+      io_led[1] = input1.q[15-:8];
+      seg.values = {4h0,4h0,4h0,4h1};
+        if (manual_a.out) {
+          // Input A
+          input1.d = c{io_dip[1], io_dip[0]};
+        }
+    } else if (io_dip[2][7:6] == 2){
+      // show the result
+      io_led[0] = input2.q[7-:8];
+      io_led[1] = input2.q[15-:8];
+      seg.values = {4h0,4h0,4h0,4h2}; 
+        if (manual_b.out) {
+          // Input B
+          input2.d = c{io_dip[1], io_dip[0]};
+        }
+    } else if (io_dip[2][7:6] == 0) {
+      // redefine io_led and set them to 0 
+      io_led[0] = tst.out[7-:8];
+      io_led[1] = tst.out[15-:8];
+      io_led[2] = tst.step; // which substep it is currently at.
+      tst.error = io_dip[2][0];
+      seg.values = {tst.seg[15-:4],tst.seg[11-:4],tst.seg[7-:4],tst.seg[3-:4]};
+    }
+  }
+  }
