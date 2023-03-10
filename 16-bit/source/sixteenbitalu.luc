@@ -38,9 +38,9 @@ module sixteenbitalu(
         n = adder.n;
 
         compare.alufn = alufn;
-//        compare.z = adder.z;
-//        compare.v = adder.v;
-//        compare.n = adder.n;
+        compare.z = adder.z;
+        compare.v = adder.v;
+        compare.n = adder.n;
     
         compare.a = a;
         compare.b = b;
