@@ -28,9 +28,8 @@ module au_top (
       sixteenbitalu alu;
       dff input1[16];
       dff input2[16];
-      dff result[16];
-      tst tst; // auto testing
-      multi_seven_seg seg;
+      dff result[16]; 
+      //multi_seven_seg seg;
     }
   }
   always {
