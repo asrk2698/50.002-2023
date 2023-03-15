@@ -1,4 +1,4 @@
-//main file that calls all other functions
+//main file that calls all other ALU functions
 
 module sixteenbitalu(
     input clk,  // clock

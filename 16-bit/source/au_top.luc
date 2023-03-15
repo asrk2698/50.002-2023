@@ -1,4 +1,4 @@
-//main function that calls 16 bit alu
+//main function that calls  sixteen_bit_alu
 
 module au_top (
     input clk,              // 100MHz clock

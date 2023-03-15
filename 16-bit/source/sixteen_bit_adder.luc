@@ -14,21 +14,21 @@ module sixteen_bit_adder (
     output n
   ) {
 
-  sig temp[16]; 
+  sig t[16]; 
   
   always {
-     temp = b0000000000000000; 
+     t = b0000000000000000; 
 
     case(alufn[0]){
-      0: temp = a+b;
-      1: temp = a-b;
-      default: temp = b0000000000000000;
+      0: t = a+b;
+      1: t = a-b;
+      default: t = b0000000000000000;
       }
 
-    v = (a[15] & (b[15] ^ alufn[0]) & !temp[15]) | (!a[15] & !(b[15] ^ alufn[0]) & temp[15]); 
-    z = ~|temp;
-    n = temp[15];
+    v = (a[15] & (b[15] ^ alufn[0]) & !t[15]) | (!a[15] & !(b[15] ^ alufn[0]) & t[15]); 
+    z = ~|t;
+    n = t[15];
 
-    sum = temp;
+    sum = t;
   }
 }
