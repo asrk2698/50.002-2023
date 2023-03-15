@@ -19,10 +19,10 @@ module sixteenbitalu(
     // clock. This ensures the entire FPGA comes out of reset at the same time.
     .rst(rst) {
     sixteen_bit_adder adder;
-    sixteenbitcmp compare;
-    sixteenbitbool boolean;
-    sixteenbitshifter shifter;
-    sixteenbitmul multiplier;
+    sixteen_bit_cmp compare;
+    sixteen_bit_bool boolean;
+    sixteen_bit_shifter shifter;
+    sixteen_bit_mul multiplier;
   
     }
   }
